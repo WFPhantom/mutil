@@ -1,7 +1,8 @@
 plugins {
     id 'java-library'
     id 'maven-publish'
-    id 'net.neoforged.gradle.userdev' version '7.1.21'
+    id 'net.neoforged.moddev' version '2.0.141'
+    id 'idea'
 }
 
 if (System.getenv('VERSION') != null) {
@@ -15,8 +16,22 @@ if (System.getenv('VERSION') != null) {
     mod_version = stdout.toString().replace("\n", '').replace("\r", '').trim()
 }
 
+tasks.named('wrapper', Wrapper).configure {
+    distributionType = Wrapper.DistributionType.BIN
+}
+
 version = "${minecraft_version}-${mod_version}"
 group = mod_group_id
+
+sourceSets.main.resources {
+    srcDir('src/generated/resources')
+
+    // Exclude common development only resources from finalized outputs
+    exclude("**/*.bbmodel") // BlockBench project files
+    exclude("src/generated/**/.cache") // datagen cache files
+}
+
+repositories {}
 
 base {
     archivesName = mod_id
@@ -24,54 +39,73 @@ base {
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
-println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty 'java.vm.version'} (${System.getProperty 'java.vendor'}), Arch: ${System.getProperty 'os.arch'}"
+neoForge {
+    // Specify the version of NeoForge to use.
+    version = project.neo_version
 
-sourceSets.main.resources {
-    srcDir('src/generated/resources')
+    parchment {
+        mappingsVersion = project.parchment_mappings_version
+        minecraftVersion = project.parchment_minecraft_version
+    }
+
+    // This line is optional. Access Transformers are automatically detected
+    // accessTransformers = project.files('src/main/resources/META-INF/accesstransformer.cfg')
+
+    // Default run configurations.
+    // These can be tweaked, removed, or duplicated as needed.
+    runs {
+        client {
+            client()
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        server {
+            server()
+            programArgument '--nogui'
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        gameTestServer {
+            type = "gameTestServer"
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        data {
+            data()
+
+            // example of overriding the workingDirectory set in configureEach above, uncomment if you want to use it
+            // gameDirectory = project.file('run-data')
+
+            programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
+        }
+
+        configureEach {
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            logLevel = org.slf4j.event.Level.DEBUG
+        }
+    }
+
+    mods {
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
+        }
+    }
 }
 
-minecraft.accessTransformers.file rootProject.file('src/main/resources/META-INF/accesstransformer.cfg')
-
-runs {
-    configureEach {
-        systemProperty 'forge.logging.markers', 'REGISTRIES'
-        systemProperty 'forge.logging.console.level', 'debug'
-        modSource project.sourceSets.main
-    }
-
-    client {
-        systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
-    }
-
-    server {
-        systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
-        argument '--nogui'
-    }
-
-    gameTestServer {
-        systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
-    }
-
-    data {
-        arguments.addAll '--mod', project.mod_id, '--all',
-                '--output', file('src/generated/resources/').getAbsolutePath(),
-                '--existing', file('src/main/resources/').getAbsolutePath()
-    }
-}
-
-repositories {
-    mavenLocal()
-}
-
+// Sets up a dependency configuration called 'localRuntime'.
+// This configuration should be used instead of 'runtimeOnly' to declare
+// a dependency that will be present for runtime testing but that is
+// "optional", meaning it will not be pulled by dependents of this mod.
 configurations {
     runtimeClasspath.extendsFrom localRuntime
 }
 
 dependencies {
-    implementation "net.neoforged:neoforge:${neo_version}"
 }
 
-tasks.withType(ProcessResources).configureEach {
+// This block of code expands all declared replace properties in the specified resource targets.
+// A missing property will result in an error. Properties are expanded using ${} Groovy notation.
+var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
     var replaceProperties = [
             minecraft_version      : minecraft_version,
             minecraft_version_range: minecraft_version_range,
@@ -86,43 +120,31 @@ tasks.withType(ProcessResources).configureEach {
             mod_description        : mod_description,
     ]
     inputs.properties replaceProperties
-
-    filesMatching(['META-INF/neoforge.mods.toml']) {
-        expand replaceProperties
-    }
+    expand replaceProperties
+    from "src/main/templates"
+    into "build/generated/sources/modMetadata"
 }
+// Include the output of "generateModMetadata" as an input directory for the build
+// this works with both building through Gradle and the IDE.
+sourceSets.main.resources.srcDir generateModMetadata
+// To avoid having to run "generateModMetadata" manually, make it run on every project reload
+neoForge.ideSyncTask generateModMetadata
 
 publishing {
     publications {
         register('mavenJava', MavenPublication) {
             from components.java
-            pom.withXml {
-                asNode().dependencies.dependency.each { dep ->
-                    println 'Surpressing artifact ' + dep.artifactId.last().value().last() + ' from maven dependencies.'
-                    assert dep.parent().remove(dep)
-                }
-            }
         }
     }
     repositories {
-        if (System.getenv('local_maven')) {
-            maven {
-                url = uri("file://${System.getenv('local_maven')}")
-            }
-        } else {
-            maven {
-                url = uri("${project.projectDir}/repo")
-            }
+        maven {
+            url = uri("file://${System.getenv("local_maven")}")
         }
     }
 }
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
-}
-
-tasks.named('wrapper', Wrapper).configure {
-    distributionType = Wrapper.DistributionType.BIN
 }
 
 idea {
