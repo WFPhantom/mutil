@@ -1,7 +1,7 @@
 package se.mickelus.mutil.network;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 
 public abstract class BlockPosPacket extends AbstractPacket {
 
@@ -14,17 +14,12 @@ public abstract class BlockPosPacket extends AbstractPacket {
     }
 
     @Override
-    public void toBytes(FriendlyByteBuf buffer) {
-        buffer.writeInt(pos.getX());
-        buffer.writeInt(pos.getY());
-        buffer.writeInt(pos.getZ());
+    public void toBytes(RegistryFriendlyByteBuf buffer) {
+        buffer.writeBlockPos(pos);
     }
 
     @Override
-    public void fromBytes(FriendlyByteBuf buffer) {
-        int x = buffer.readInt();
-        int y = buffer.readInt();
-        int z = buffer.readInt();
-        pos = new BlockPos(x, y, z);
+    public void fromBytes(RegistryFriendlyByteBuf buffer) {
+        pos = buffer.readBlockPos();
     }
 }

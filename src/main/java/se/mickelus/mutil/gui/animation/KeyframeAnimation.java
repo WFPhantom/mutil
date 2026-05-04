@@ -16,7 +16,7 @@ public class KeyframeAnimation implements GuiAnimation {
     private Applier[] appliers;
 
     private long startTime;
-    private boolean isActive = false;
+    private boolean inactive = true;
 
     public KeyframeAnimation(int duration, GuiElement element) {
         this.duration = duration;
@@ -44,16 +44,16 @@ public class KeyframeAnimation implements GuiAnimation {
 
         Arrays.stream(this.appliers).forEach(applier -> applier.start(duration));
 
-        isActive = true;
+        inactive = false;
         element.addAnimation(this);
     }
 
     public void stop() {
         // todo: hacky
         if (handler != null) {
-            handler.accept(!isActive);
+            handler.accept(inactive);
         }
-        isActive = false;
+        inactive = true;
     }
 
     public void preDraw() {
@@ -64,13 +64,13 @@ public class KeyframeAnimation implements GuiAnimation {
                 Arrays.stream(appliers).forEach(applier -> applier.preDraw(progress));
             } else {
                 Arrays.stream(appliers).forEach(applier -> applier.preDraw(1));
-                isActive = false;
+                inactive = true;
                 stop();
             }
         }
     }
 
-    public boolean isActive() {
-        return isActive;
+    public boolean isInactive() {
+        return inactive;
     }
 }

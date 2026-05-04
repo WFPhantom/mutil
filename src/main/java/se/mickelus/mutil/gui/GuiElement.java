@@ -7,11 +7,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import se.mickelus.mutil.gui.animation.KeyframeAnimation;
 
-// todo 1.20: GuiComponent became GuiGraphics extension no longer makes sense, still works?
 public class GuiElement {
     protected int x;
     protected int y;
@@ -44,7 +43,7 @@ public class GuiElement {
         activeAnimations = new HashSet<>();
     }
 
-    public void draw(final GuiGraphics graphics, int refX, int refY, int screenWidth, int screenHeight, int mouseX, int mouseY,
+    public void draw(final GuiGraphicsExtractor graphics, int refX, int refY, int screenWidth, int screenHeight, int mouseX, int mouseY,
             float opacity) {
         drawChildren(graphics, refX + x, refY + y, screenWidth, screenHeight, mouseX, mouseY, opacity * this.opacity);
     }
@@ -53,11 +52,11 @@ public class GuiElement {
         //        activeAnimations.stream()
         //                .filter(animation -> !animation.isActive())
         //                .forEach(KeyframeAnimation::stop);
-        activeAnimations.removeIf(animation -> !animation.isActive());
+        activeAnimations.removeIf(KeyframeAnimation::isInactive);
         activeAnimations.forEach(KeyframeAnimation::preDraw);
     }
 
-    protected void drawChildren(final GuiGraphics graphics, int refX, int refY, int screenWidth, int screenHeight, int mouseX, int mouseY,
+    protected void drawChildren(final GuiGraphicsExtractor graphics, int refX, int refY, int screenWidth, int screenHeight, int mouseX, int mouseY,
             float opacity) {
         elements.removeIf(GuiElement::shouldRemove);
         elements.stream()
@@ -72,39 +71,19 @@ public class GuiElement {
     }
 
     protected static int getXOffset(GuiElement element, GuiAttachment attachment) {
-        switch (attachment) {
-            case topLeft:
-            case middleLeft:
-            case bottomLeft:
-                return 0;
-            case topCenter:
-            case middleCenter:
-            case bottomCenter:
-                return element.getWidth() / 2;
-            case topRight:
-            case middleRight:
-            case bottomRight:
-                return element.getWidth();
-        }
-        return 0;
+        return switch (attachment) {
+            case topLeft, middleLeft, bottomLeft -> 0;
+            case topCenter, middleCenter, bottomCenter -> element.getWidth() / 2;
+            case topRight, middleRight, bottomRight -> element.getWidth();
+        };
     }
 
     protected static int getYOffset(GuiElement element, GuiAttachment attachment) {
-        switch (attachment) {
-            case topLeft:
-            case topCenter:
-            case topRight:
-                return 0;
-            case middleLeft:
-            case middleCenter:
-            case middleRight:
-                return element.getHeight() / 2;
-            case bottomCenter:
-            case bottomLeft:
-            case bottomRight:
-                return element.getHeight();
-        }
-        return 0;
+        return switch (attachment) {
+            case topLeft, topCenter, topRight -> 0;
+            case middleLeft, middleCenter, middleRight -> element.getHeight() / 2;
+            case bottomCenter, bottomLeft, bottomRight -> element.getHeight();
+        };
     }
 
     public boolean onMouseClick(int x, int y, int button) {
@@ -371,7 +350,7 @@ public class GuiElement {
         return null;
     }
 
-    protected static void drawRect(final GuiGraphics graphics, int left, int top, int right, int bottom, int color, float opacity) {
+    protected static void drawRect(final GuiGraphicsExtractor graphics, int left, int top, int right, int bottom, int color, float opacity) {
         graphics.fill(left, top, right, bottom, colorWithOpacity(color, opacity));
     }
 

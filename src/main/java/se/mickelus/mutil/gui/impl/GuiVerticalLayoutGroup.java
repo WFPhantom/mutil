@@ -1,15 +1,15 @@
 package se.mickelus.mutil.gui.impl;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import se.mickelus.mutil.gui.GuiElement;
 
 public class GuiVerticalLayoutGroup extends GuiElement {
     private boolean needsLayout = false;
 
-    private int spacing;
+    private final int spacing;
 
     public GuiVerticalLayoutGroup(int x, int y, int width, int spacing) {
-        super(x, y, 0, width);
+        super(x, y, width, 0);
 
         this.spacing = spacing;
     }
@@ -42,7 +42,7 @@ public class GuiVerticalLayoutGroup extends GuiElement {
     }
 
     @Override
-    protected void drawChildren(final GuiGraphics graphics, int refX, int refY, int screenWidth, int screenHeight, int mouseX, int mouseY, float opacity) {
+    protected void drawChildren(final GuiGraphicsExtractor graphics, int refX, int refY, int screenWidth, int screenHeight, int mouseX, int mouseY, float opacity) {
         if (needsLayout) {
             layoutChildren();
         }

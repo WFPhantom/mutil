@@ -1,9 +1,8 @@
 package se.mickelus.mutil.gui;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.platform.Window;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 public class GuiRoot extends GuiElement {
 
@@ -14,7 +13,7 @@ public class GuiRoot extends GuiElement {
         this.mc = mc;
     }
 
-    public void draw(GuiGraphics graphics) {
+    public void draw(GuiGraphicsExtractor graphics) {
         if (isVisible()) {
             Window window = mc.getWindow();
 

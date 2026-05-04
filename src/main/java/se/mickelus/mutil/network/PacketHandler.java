@@ -6,10 +6,11 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
@@ -112,7 +113,10 @@ public class PacketHandler {
     }
 
     public void sendToAllPlayersNear(AbstractPacket message, BlockPos pos, double radius, ResourceKey<Level> dimension) {
-        ServerLevel level = ServerLifecycleHooks.getCurrentServer().getLevel(dimension);
+        var server = ServerLifecycleHooks.getCurrentServer();
+        if (server == null) return;
+
+        ServerLevel level = server.getLevel(dimension);
         if (level != null) {
             PacketDistributor.sendToPlayersNear(level, null, pos.getX(), pos.getY(), pos.getZ(), radius, createPayload(message));
         }
@@ -121,7 +125,7 @@ public class PacketHandler {
     public void sendToServer(AbstractPacket message) {
         // crashes sometimes happen due to the connection being null
         if (Minecraft.getInstance().getConnection() != null) {
-            PacketDistributor.sendToServer(createPayload(message));
+            ClientPacketDistributor.sendToServer(createPayload(message));
         }
     }
 
@@ -146,8 +150,8 @@ public class PacketHandler {
         }
     }
 
-    private ResourceLocation getPacketId(Class<? extends AbstractPacket> packetClass) {
-        return ResourceLocation.fromNamespaceAndPath(
+    private Identifier getPacketId(Class<? extends AbstractPacket> packetClass) {
+        return Identifier.fromNamespaceAndPath(
                 namespace,
                 channelId + "/" + packetClass.getName()
                         .replace('.', '/')
@@ -156,27 +160,22 @@ public class PacketHandler {
         );
     }
 
-    private static class PacketPayload<T extends AbstractPacket> implements CustomPacketPayload {
-        private final PacketRegistration<T> registration;
-        private final T packet;
-
-        private PacketPayload(PacketRegistration<T> registration, T packet) {
-            this.registration = registration;
-            this.packet = packet;
-        }
-
+    private record PacketPayload<T extends AbstractPacket>(
+            PacketRegistration<T> registration,
+            T packet
+    ) implements CustomPacketPayload {
         @Override
-        public Type<PacketPayload<T>> type() {
-            return registration.type;
+            public Type<PacketPayload<T>> type() {
+                return registration.type;
+            }
         }
-    }
 
     private static class PacketRegistration<T extends AbstractPacket> {
         private final CustomPacketPayload.Type<PacketPayload<T>> type;
         private final StreamCodec<RegistryFriendlyByteBuf, PacketPayload<T>> codec;
         private final PacketDirection direction;
 
-        private PacketRegistration(Class<T> packetClass, Supplier<T> supplier, ResourceLocation id, PacketDirection direction) {
+        private PacketRegistration(Class<T> packetClass, Supplier<T> supplier, Identifier id, PacketDirection direction) {
             type = new CustomPacketPayload.Type<>(id);
             this.direction = direction;
             codec = StreamCodec.of(

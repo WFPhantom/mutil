@@ -1,6 +1,6 @@
 package se.mickelus.mutil.gui;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import se.mickelus.mutil.gui.impl.GuiHorizontalScrollable;
 
 public class ScrollBarGui extends GuiElement {
@@ -24,7 +24,7 @@ public class ScrollBarGui extends GuiElement {
     }
 
     @Override
-    public void draw(final GuiGraphics graphics, int refX, int refY, int screenWidth, int screenHeight, int mouseX, int mouseY,
+    public void draw(final GuiGraphicsExtractor graphics, int refX, int refY, int screenWidth, int screenHeight, int mouseX, int mouseY,
             float opacity) {
         if (isActive()) {
             super.draw(graphics, refX, refY, screenWidth, screenHeight, mouseX, mouseY, opacity);
@@ -39,11 +39,11 @@ public class ScrollBarGui extends GuiElement {
         }
     }
 
-    protected void drawBackground(final GuiGraphics graphics, int x, int y) {
+    protected void drawBackground(final GuiGraphicsExtractor graphics, int x, int y) {
         drawRect(graphics, x, y, x + width, y + height, 0xffffff, opacity * 0.2f);
     }
 
-    protected void drawHandle(final GuiGraphics graphics, int x, int y, int handleWidth) {
+    protected void drawHandle(final GuiGraphicsExtractor graphics, int x, int y, int handleWidth) {
         drawRect(graphics, x, y, x + handleWidth, y + height, 0xffffff, opacity * 0.7f);
     }
 }

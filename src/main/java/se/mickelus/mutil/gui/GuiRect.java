@@ -1,6 +1,6 @@
 package se.mickelus.mutil.gui;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 public class GuiRect extends GuiElement {
 
@@ -24,14 +24,14 @@ public class GuiRect extends GuiElement {
     }
 
     @Override
-    public void draw(final GuiGraphics graphics, int refX, int refY, int screenWidth, int screenHeight, int mouseX, int mouseY,
+    public void draw(final GuiGraphicsExtractor graphics, int refX, int refY, int screenWidth, int screenHeight, int mouseX, int mouseY,
             float opacity) {
         super.draw(graphics, refX, refY, screenWidth, screenHeight, mouseX, mouseY, opacity);
         if (offset) {
-            graphics.pose().pushPose();
-            graphics.pose().translate(0.5F, 0.5F, 0);
+            graphics.pose().pushMatrix();
+            graphics.pose().translate(0.5F, 0.5F);
             drawRect(graphics, refX + x, refY + y, refX + x + width - 1, refY + y + height - 1, color, opacity * getOpacity());
-            graphics.pose().popPose();
+            graphics.pose().popMatrix();
         }
         else {
             drawRect(graphics, refX + x, refY + y, refX + x + width, refY + y + height, color, opacity * getOpacity());

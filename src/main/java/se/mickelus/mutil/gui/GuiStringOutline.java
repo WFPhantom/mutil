@@ -1,7 +1,7 @@
 package se.mickelus.mutil.gui;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 public class GuiStringOutline extends GuiString {
     private String cleanString;
@@ -49,9 +49,8 @@ public class GuiStringOutline extends GuiString {
     }
 
     @Override
-    protected void drawString(final GuiGraphics graphics, String text, int x, int y, int color, float opacity, boolean drawShadow) {
+    protected void drawString(final GuiGraphicsExtractor graphics, String text, int x, int y, int color, float opacity, boolean drawShadow) {
 
-        graphics.pose().pushPose();
         super.drawString(graphics, cleanString, x - 1, y - 1, 0, opacity, false);
         super.drawString(graphics, cleanString, x, y - 1, 0, opacity, false);
         super.drawString(graphics, cleanString, x + 1, y - 1, 0, opacity, false);
@@ -63,9 +62,6 @@ public class GuiStringOutline extends GuiString {
         super.drawString(graphics, cleanString, x + 1, y, 0, opacity, false);
         super.drawString(graphics, cleanString, x - 1, y, 0, opacity, false);
 
-        // magic offset to avoid z-fighting for in-world rendering
-        graphics.pose().translate(0, 0, 0.0020000000949949026D);
         super.drawString(graphics, text, x, y, color, opacity, false);
-        graphics.pose().popPose();
     }
 }

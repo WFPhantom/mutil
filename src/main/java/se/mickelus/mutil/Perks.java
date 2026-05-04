@@ -17,7 +17,7 @@ public class Perks {
     private static volatile Data data;
 
     public static void init(String uuid) {
-        if (!ConfigHandler.client.queryPerks.get()) {
+        if (!ConfigHandler.queryPerks.get()) {
             logger.info("Perks query disabled, skipping fetch!");
             data = new Data();
             return;
@@ -27,14 +27,15 @@ public class Perks {
             HttpRequest request = HttpRequest.newBuilder(new URI("https://mickelus.se/util/perks/" + uuid.replace("-", "")))
                     .header("Accept", "application/json")
                     .build();
-            HttpClient.newHttpClient()
-                    .sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                    .thenApply(HttpResponse::body)
-                    .thenApply(body -> gson.fromJson(body, Data.class))
-                    .thenAccept(Perks::setData)
-                    .get();
+            try (HttpClient client = HttpClient.newHttpClient()) {
+                client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                        .thenApply(HttpResponse::body)
+                        .thenApply(body -> gson.fromJson(body, Data.class))
+                        .thenAccept(Perks::setData)
+                        .get();
+            }
         } catch (URISyntaxException | ExecutionException | InterruptedException e) {
-            logger.warn("Failed to get perk data: " + e.getMessage());
+            logger.warn("Failed to get perk data: {}", e.getMessage());
             data = new Data();
         }
     }

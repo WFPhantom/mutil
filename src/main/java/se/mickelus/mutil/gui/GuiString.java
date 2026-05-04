@@ -1,12 +1,8 @@
 package se.mickelus.mutil.gui;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.MultiBufferSource;
-import com.mojang.blaze3d.vertex.Tesselator;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import se.mickelus.mutil.gui.animation.KeyframeAnimation;
 
 public class GuiString extends GuiElement {
@@ -78,19 +74,18 @@ public class GuiString extends GuiElement {
     }
 
     @Override
-    public void draw(final GuiGraphics graphics, int refX, int refY, int screenWidth, int screenHeight, int mouseX, int mouseY, float opacity) {
-        activeAnimations.removeIf(keyframeAnimation -> !keyframeAnimation.isActive());
+    public void draw(final GuiGraphicsExtractor graphics, int refX, int refY, int screenWidth, int screenHeight, int mouseX, int mouseY, float opacity) {
+        activeAnimations.removeIf(KeyframeAnimation::isInactive);
         activeAnimations.forEach(KeyframeAnimation::preDraw);
-        RenderSystem.enableBlend();
         drawString(graphics, string, refX + x, refY + y, color, opacity * getOpacity(), drawShadow);
     }
 
-    protected void drawString(final GuiGraphics graphics, String text, int x, int y, int color, float opacity, boolean drawShadow) {
+    protected void drawString(final GuiGraphicsExtractor graphics, String text, int x, int y, int color, float opacity, boolean drawShadow) {
         color = colorWithOpacity(color, opacity);
 
         // if the vanilla fontrender considers the color to be almost transparent (0xfc) it flips the opacity back to 1
         if ((color & -67108864) != 0) {
-            graphics.drawString(fontRenderer, text, x, y, color, drawShadow);
+            graphics.text(fontRenderer, text, x, y, color, drawShadow);
         }
     }
 }

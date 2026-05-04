@@ -1,6 +1,6 @@
 package se.mickelus.mutil.gui;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 public class ClipRectGui extends GuiElement {
     public ClipRectGui(int x, int y, int width, int height) {
@@ -8,7 +8,7 @@ public class ClipRectGui extends GuiElement {
     }
 
     @Override
-    protected void drawChildren(final GuiGraphics graphics, int refX, int refY, int screenWidth, int screenHeight, int mouseX, int mouseY,
+    protected void drawChildren(final GuiGraphicsExtractor graphics, int refX, int refY, int screenWidth, int screenHeight, int mouseX, int mouseY,
             float opacity) {
         graphics.enableScissor(refX, refY, refX + width, refY + height);
         super.drawChildren(graphics, refX, refY, screenWidth, screenHeight, mouseX, mouseY, opacity);

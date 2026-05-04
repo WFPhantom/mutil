@@ -13,7 +13,7 @@ import java.util.stream.StreamSupport;
 @ParametersAreNonnullByDefault
 public class InventoryStream {
     public static Stream<ItemStack> of(Container inventory) {
-        return StreamSupport.stream(new Spliterators.AbstractSpliterator<ItemStack>(inventory.getContainerSize(), Spliterator.NONNULL | Spliterator.SIZED) {
+        return StreamSupport.stream(new Spliterators.AbstractSpliterator<>(inventory.getContainerSize(), Spliterator.NONNULL | Spliterator.SIZED) {
             int index = 0;
 
             public boolean tryAdvance(Consumer<? super ItemStack> consumer) {

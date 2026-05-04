@@ -1,6 +1,6 @@
 package se.mickelus.mutil.gui;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import se.mickelus.mutil.gui.animation.KeyframeAnimation;
 
 public class GuiStringSmall extends GuiString {
@@ -52,12 +52,12 @@ public class GuiStringSmall extends GuiString {
     }
 
     @Override
-    public void draw(final GuiGraphics graphics, int refX, int refY, int screenWidth, int screenHeight, int mouseX, int mouseY, float opacity) {
-        activeAnimations.removeIf(keyframeAnimation -> !keyframeAnimation.isActive());
+    public void draw(final GuiGraphicsExtractor graphics, int refX, int refY, int screenWidth, int screenHeight, int mouseX, int mouseY, float opacity) {
+        activeAnimations.removeIf(KeyframeAnimation::isInactive);
         activeAnimations.forEach(KeyframeAnimation::preDraw);
-        graphics.pose().pushPose();
-        graphics.pose().scale(.5f, .5f, .5f);
+        graphics.pose().pushMatrix();
+        graphics.pose().scale(.5f, .5f);
         drawString(graphics, string, refX * 2 + x, refY * 2 + y, color, opacity * getOpacity(), drawShadow);
-        graphics.pose().popPose();
+        graphics.pose().popMatrix();
     }
 }

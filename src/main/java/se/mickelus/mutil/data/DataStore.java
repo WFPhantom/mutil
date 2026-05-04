@@ -3,7 +3,7 @@ package se.mickelus.mutil.data;
 import com.google.common.collect.Maps;
 import com.google.gson.*;
 import com.mojang.serialization.JsonOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -26,17 +26,17 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @ParametersAreNonnullByDefault
-public class DataStore<V> extends SimplePreparableReloadListener<Map<ResourceLocation, JsonElement>> {
+public class DataStore<V> extends SimplePreparableReloadListener<Map<Identifier, JsonElement>> {
     protected static final int jsonExtLength = ".json".length();
     private static final Logger logger = LogManager.getLogger();
     protected Gson gson;
     protected String namespace;
     protected String directory;
     protected Class<V> dataClass;
-    protected Map<ResourceLocation, JsonElement> rawData;
-    protected Map<ResourceLocation, V> dataMap;
+    protected Map<Identifier, JsonElement> rawData;
+    protected Map<Identifier, V> dataMap;
     protected List<Runnable> listeners;
-    private DataDistributor syncronizer;
+    private final DataDistributor syncronizer;
 
     public DataStore(Gson gson, String namespace, String directory, Class<V> dataClass, DataDistributor synchronizer) {
         this.gson = gson;
@@ -52,18 +52,18 @@ public class DataStore<V> extends SimplePreparableReloadListener<Map<ResourceLoc
         listeners = new LinkedList<>();
     }
 
-    protected Map<ResourceLocation, JsonElement> prepare(ResourceManager resourceManager, ProfilerFiller profiler) {
+    protected Map<Identifier, JsonElement> prepare(ResourceManager resourceManager, ProfilerFiller profiler) {
         logger.debug("Reading data for {} data store...", directory);
-        Map<ResourceLocation, JsonElement> map = Maps.newHashMap();
+        Map<Identifier, JsonElement> map = Maps.newHashMap();
         int i = this.directory.length() + 1;
 
-        for (Map.Entry<ResourceLocation, Resource> entry : resourceManager.listResources(directory, rl -> rl.getPath().endsWith(".json")).entrySet()) {
+        for (Map.Entry<Identifier, Resource> entry : resourceManager.listResources(directory, rl -> rl.getPath().endsWith(".json")).entrySet()) {
             if (!namespace.equals(entry.getKey().getNamespace())) {
                 continue;
             }
 
             String path = entry.getKey().getPath();
-            ResourceLocation location = ResourceLocation.fromNamespaceAndPath(entry.getKey().getNamespace(), path.substring(i, path.length() - jsonExtLength));
+            Identifier location = Identifier.fromNamespaceAndPath(entry.getKey().getNamespace(), path.substring(i, path.length() - jsonExtLength));
 
             try (Reader reader = entry.getValue().openAsReader()) {
                 JsonElement json;
@@ -81,17 +81,13 @@ public class DataStore<V> extends SimplePreparableReloadListener<Map<ResourceLoc
                     json.getAsJsonObject().add("sources", getSources(entry.getValue()));
                 }
 
-                if (json != null) {
-                    if (shouldLoad(json)) {
-                        JsonElement duplicate = map.put(location, json);
-                        if (duplicate != null) {
-                            throw new IllegalStateException("Duplicate data ignored with ID " + location);
-                        }
-                    } else {
-                        logger.debug("Skipping data '{}' due to condition", entry.getKey());
+                if (shouldLoad(json)) {
+                    JsonElement duplicate = map.put(location, json);
+                    if (duplicate != null) {
+                        throw new IllegalStateException("Duplicate data ignored with ID " + location);
                     }
                 } else {
-                    logger.error("Couldn't load data from '{}' as it's null or empty", entry.getKey());
+                    logger.debug("Skipping data '{}' due to condition", entry.getKey());
                 }
             } catch (IllegalArgumentException | IOException | JsonParseException exception) {
                 logger.error("Couldn't parse data '{}' from '{}'", location, entry.getKey(), exception);
@@ -111,7 +107,7 @@ public class DataStore<V> extends SimplePreparableReloadListener<Map<ResourceLoc
                 .map(IModInfo::getDisplayName)
                 .forEach(result::add);
 
-        if (result.size() == 0) {
+        if (result.isEmpty()) {
             result.add(fileId);
         }
 
@@ -119,11 +115,11 @@ public class DataStore<V> extends SimplePreparableReloadListener<Map<ResourceLoc
     }
 
     @Override
-    protected void apply(Map<ResourceLocation, JsonElement> splashList, ResourceManager resourceManager, ProfilerFiller profiler) {
+    protected void apply(Map<Identifier, JsonElement> splashList, ResourceManager resourceManager, ProfilerFiller profiler) {
         rawData = splashList;
 
         // PacketHandler dependencies get upset when called upon before the server has started properly
-        if (FMLEnvironment.dist.isDedicatedServer() && ServerLifecycleHooks.getCurrentServer() != null) {
+        if (FMLEnvironment.getDist().isDedicatedServer() && ServerLifecycleHooks.getCurrentServer() != null) {
             syncronizer.sendToAll(directory, rawData);
         }
 
@@ -134,8 +130,8 @@ public class DataStore<V> extends SimplePreparableReloadListener<Map<ResourceLoc
         syncronizer.sendToPlayer(player, directory, rawData);
     }
 
-    public void loadFromPacket(Map<ResourceLocation, String> data) {
-        Map<ResourceLocation, JsonElement> splashList = data.entrySet().stream()
+    public void loadFromPacket(Map<Identifier, String> data) {
+        Map<Identifier, JsonElement> splashList = data.entrySet().stream()
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
                         entry -> {
@@ -150,8 +146,8 @@ public class DataStore<V> extends SimplePreparableReloadListener<Map<ResourceLoc
         parseData(splashList);
     }
 
-    public void parseData(Map<ResourceLocation, JsonElement> splashList) {
-        logger.info("Loaded {} {}", String.format("%3d", splashList.values().size()), directory);
+    public void parseData(Map<Identifier, JsonElement> splashList) {
+        logger.info("Loaded {} {}", String.format("%3d", splashList.size()), directory);
         dataMap = splashList.entrySet().stream()
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
@@ -166,7 +162,7 @@ public class DataStore<V> extends SimplePreparableReloadListener<Map<ResourceLoc
     protected boolean shouldLoad(JsonElement json) {
         if (json.isJsonArray()) {
             JsonArray arr = json.getAsJsonArray();
-            if (arr.size() > 0) {
+            if (!arr.isEmpty()) {
                 json = arr.get(0);
             }
         }
@@ -188,7 +184,7 @@ public class DataStore<V> extends SimplePreparableReloadListener<Map<ResourceLoc
 
     }
 
-    public Map<ResourceLocation, JsonElement> getRawData() {
+    public Map<Identifier, JsonElement> getRawData() {
         return rawData;
     }
 
@@ -199,30 +195,30 @@ public class DataStore<V> extends SimplePreparableReloadListener<Map<ResourceLoc
     /**
      * Get the resource at the given location from the set of resources that this listener is managing
      *
-     * @param resourceLocation A resource location
+     * @param identifier A resource location
      * @return An object matching the type of this listener, or null if none exists at the given location
      */
-    public V getData(ResourceLocation resourceLocation) {
-        return dataMap.get(resourceLocation);
+    public V getData(Identifier identifier) {
+        return dataMap.get(identifier);
     }
 
     /**
      * @return all data from this store.
      */
-    public Map<ResourceLocation, V> getData() {
+    public Map<Identifier, V> getData() {
         return dataMap;
     }
 
     /**
      * Get all resources (if any) that are within the directory denoted by the provided resource location
      *
-     * @param resourceLocation
+     * @param identifier
      * @return
      */
-    public Collection<V> getDataIn(ResourceLocation resourceLocation) {
+    public Collection<V> getDataIn(Identifier identifier) {
         return getData().entrySet().stream()
-                .filter(entry -> resourceLocation.getNamespace().equals(entry.getKey().getNamespace())
-                        && entry.getKey().getPath().startsWith(resourceLocation.getPath()))
+                .filter(entry -> identifier.getNamespace().equals(entry.getKey().getNamespace())
+                        && entry.getKey().getPath().startsWith(identifier.getPath()))
                 .map(Map.Entry::getValue)
                 .collect(Collectors.toList());
     }

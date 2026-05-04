@@ -8,8 +8,8 @@ public abstract class Applier {
 
     protected boolean relativeStart;
     protected boolean relativeTarget;
-    protected float startOffset = 0;
-    protected float targetOffset = 0;
+    protected float startOffset;
+    protected float targetOffset;
 
 
     protected float startValue;

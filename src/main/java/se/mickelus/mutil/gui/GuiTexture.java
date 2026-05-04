@@ -1,12 +1,12 @@
 package se.mickelus.mutil.gui;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.resources.Identifier;
 
 public class GuiTexture extends GuiElement {
 
-    protected ResourceLocation textureLocation;
+    protected Identifier textureIdentifier;
 
     protected int textureWidth = 256;
     protected int textureHeight = 256;
@@ -14,19 +14,18 @@ public class GuiTexture extends GuiElement {
     protected int textureY;
 
     protected int color = 0xffffff;
-    private boolean useDefaultBlending = true;
 
-    public GuiTexture(int x, int y, int width, int height, ResourceLocation textureLocation) {
-        this(x, y, width, height, 0, 0, textureLocation);
+    public GuiTexture(int x, int y, int width, int height, Identifier textureIdentifier) {
+        this(x, y, width, height, 0, 0, textureIdentifier);
     }
 
-    public GuiTexture(int x, int y, int width, int height, int textureX, int textureY, ResourceLocation textureLocation) {
+    public GuiTexture(int x, int y, int width, int height, int textureX, int textureY, Identifier textureIdentifier) {
         super(x, y, width, height);
 
         this.textureX = textureX;
         this.textureY = textureY;
 
-        this.textureLocation = textureLocation;
+        this.textureIdentifier = textureIdentifier;
     }
 
     public GuiTexture setTextureCoordinates(int x, int y) {
@@ -46,33 +45,17 @@ public class GuiTexture extends GuiElement {
         return this;
     }
 
-    public GuiTexture setUseDefaultBlending(boolean useDefault) {
-        this.useDefaultBlending = useDefault;
-        return this;
-    }
-
     @Override
-    public void draw(final GuiGraphics graphics, int refX, int refY, int screenWidth, int screenHeight, int mouseX, int mouseY,
+    public void draw(final GuiGraphicsExtractor graphics, int refX, int refY, int screenWidth, int screenHeight, int mouseX, int mouseY,
             float opacity) {
         super.draw(graphics, refX, refY, screenWidth, screenHeight, mouseX, mouseY, opacity);
 
-        drawTexture(graphics, textureLocation, refX + x, refY + y, width, height, textureX, textureY, color, getOpacity() * opacity);
+        drawTexture(graphics, textureIdentifier, refX + x, refY + y, width, height, textureX, textureY, color, getOpacity() * opacity);
     }
 
-    protected void drawTexture(final GuiGraphics graphics, ResourceLocation textureLocation, int x, int y, int width, int height,
-            int u, int v, int color, float opacity) {
-        if (useDefaultBlending) {
-            RenderSystem.enableBlend();
-            RenderSystem.defaultBlendFunc();
-        }
-
-        graphics.setColor(
-                (color >> 16 & 255) / 255f,
-                (color >> 8 & 255) / 255f,
-                (color & 255) / 255f,
-                opacity
-        );
-        graphics.blit(textureLocation, x, y, u, v, width, height, textureWidth, textureHeight);
-        graphics.setColor(1, 1, 1, 1);
+    protected void drawTexture(final GuiGraphicsExtractor graphics, Identifier textureIdentifier, int x, int y, int width, int height,
+                               int u, int v, int color, float opacity) {
+        int argb = colorWithOpacity(color, opacity);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, textureIdentifier, x, y, u, v, width, height, textureWidth, textureHeight, argb);
     }
 }

@@ -1,9 +1,7 @@
 package se.mickelus.mutil.gui;
 
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -13,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GuiItem extends GuiElement {
-    private Minecraft mc;
+    private final Minecraft mc;
 
     private ItemStack itemStack;
 
@@ -21,7 +19,6 @@ public class GuiItem extends GuiElement {
     private CountMode countMode = CountMode.normal;
 
     private float opacityThreshold = 1;
-    private boolean resetDepthTest = true;
 
     private boolean renderDecoration = true;
 
@@ -58,12 +55,6 @@ public class GuiItem extends GuiElement {
     public GuiItem setItem(ItemStack itemStack) {
         this.itemStack = itemStack;
         setVisible(itemStack != null);
-
-        return this;
-    }
-
-    public GuiItem setResetDepthTest(boolean shouldReset) {
-        this.resetDepthTest = shouldReset;
         return this;
     }
 
@@ -75,36 +66,23 @@ public class GuiItem extends GuiElement {
     // todo 1.20: blitOffset gone, still works?
     // todo 1.20: how to render decorations?
     @Override
-    public void draw(final GuiGraphics graphics, int refX, int refY, int screenWidth, int screenHeight, int mouseX, int mouseY, float opacity) {
+    public void draw(final GuiGraphicsExtractor graphics, int refX, int refY, int screenWidth, int screenHeight, int mouseX, int mouseY, float opacity) {
         super.draw(graphics, refX, refY, screenWidth, screenHeight, mouseX, mouseY, opacity);
         if (itemStack != null && opacity * getOpacity() >= opacityThreshold) {
-            RenderSystem.applyModelViewMatrix();
-            RenderSystem.enableDepthTest();
-            RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA,
-                    GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
-            graphics.renderItem(itemStack, refX + x, refY + y);
+            graphics.item(itemStack, refX + x, refY + y);
 
             if (renderDecoration) {
-                graphics.renderItemDecorations(mc.font, itemStack, refX + x, refY + y, getCountString());
-            }
-
-            if (resetDepthTest) {
-                RenderSystem.disableDepthTest();
+                graphics.itemDecorations(mc.font, itemStack, refX + x, refY + y, getCountString());
             }
         }
     }
 
     protected String getCountString() {
-        switch (countMode) {
-            case normal:
-                return null;
-            case always:
-                return String.valueOf(itemStack.getCount());
-            case never:
-                return "";
-        }
-
-        return null;
+        return switch (countMode) {
+            case normal -> null;
+            case always -> String.valueOf(itemStack.getCount());
+            case never -> "";
+        };
     }
 
     @Override

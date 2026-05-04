@@ -1,16 +1,12 @@
 package se.mickelus.mutil.gui;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.Tesselator;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
 
 import java.util.List;
-import org.joml.Matrix4f;
 
 public class GuiText extends GuiElement {
 
@@ -29,7 +25,7 @@ public class GuiText extends GuiElement {
     public void setString(String string) {
         this.string = string.replace("\\n", "\n");
 
-        height = fontRenderer.wordWrapHeight(this.string, width);
+        height = fontRenderer.wordWrapHeight(Component.literal(this.string), width);
     }
 
     public void setColor(int color) {
@@ -37,17 +33,17 @@ public class GuiText extends GuiElement {
     }
 
     @Override
-    public void draw(final GuiGraphics graphics, int refX, int refY, int screenWidth, int screenHeight, int mouseX, int mouseY, float opacity) {
+    public void draw(final GuiGraphicsExtractor graphics, int refX, int refY, int screenWidth, int screenHeight, int mouseX, int mouseY, float opacity) {
         renderText(graphics, fontRenderer, string, refX + x, refY + y, width, color, opacity);
 
         super.draw(graphics, refX, refY, screenWidth, screenHeight, mouseX, mouseY, opacity);
     }
 
-    protected static void renderText(GuiGraphics graphics, Font fontRenderer, String string, int x, int y, int width, int color, float opacity) {
+    protected static void renderText(GuiGraphicsExtractor graphics, Font fontRenderer, String string, int x, int y, int width, int color, float opacity) {
         // todo 1.20: font rendering changed, test that it works
         List<FormattedCharSequence> list = fontRenderer.split(Component.literal(string), width);
         for(FormattedCharSequence line : list) {
-            graphics.drawString(fontRenderer, line, x, y, colorWithOpacity(color, opacity));
+            graphics.text(fontRenderer, line, x, y, colorWithOpacity(color, opacity));
             y += 9;
 //            float lineX = (float) x;
 //            MultiBufferSource.BufferSource buffer = MultiBufferSource.immediate(Tesselator.getInstance().getBuilder());

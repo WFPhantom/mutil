@@ -1,29 +1,29 @@
 package se.mickelus.mutil.gui;
 
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.resources.Identifier;
 
 /**
  * Texture with half "pixel" offset
  */
 public class GuiTextureOffset extends GuiTexture {
 
-    public GuiTextureOffset(int x, int y, int width, int height, ResourceLocation textureLocation) {
-        super(x, y, width + 1, height + 1, textureLocation);
+    public GuiTextureOffset(int x, int y, int width, int height, Identifier textureIdentifier) {
+        super(x, y, width + 1, height + 1, textureIdentifier);
     }
 
-    public GuiTextureOffset(int x, int y, int width, int height, int textureX, int textureY, ResourceLocation textureLocation) {
-        super(x, y, width + 1, height + 1, textureX, textureY, textureLocation);
+    public GuiTextureOffset(int x, int y, int width, int height, int textureX, int textureY, Identifier textureIdentifier) {
+        super(x, y, width + 1, height + 1, textureX, textureY, textureIdentifier);
     }
 
     @Override
-    public void draw(final GuiGraphics graphics, int refX, int refY, int screenWidth, int screenHeight, int mouseX, int mouseY, float opacity) {
+    public void draw(final GuiGraphicsExtractor graphics, int refX, int refY, int screenWidth, int screenHeight, int mouseX, int mouseY, float opacity) {
         drawChildren(graphics, refX + x, refY + y, screenWidth, screenHeight, mouseX, mouseY, opacity * this.opacity);
 
-        graphics.pose().pushPose();
-        graphics.pose().translate(0.5F, 0.5F, 0);
-        drawTexture(graphics, textureLocation, refX + x, refY + y, width - 1, height - 1, textureX, textureY, color,
+        graphics.pose().pushMatrix();
+        graphics.pose().translate(0.5F, 0.5F);
+        drawTexture(graphics, textureIdentifier, refX + x, refY + y, width - 1, height - 1, textureX, textureY, color,
                 getOpacity() * opacity);
-        graphics.pose().popPose();
+        graphics.pose().popMatrix();
     }
 }
