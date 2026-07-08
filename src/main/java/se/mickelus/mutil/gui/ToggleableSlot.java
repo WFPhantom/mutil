@@ -5,18 +5,12 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.SlotItemHandler;
 
-import javax.annotation.Nullable;
-
 public class ToggleableSlot extends SlotItemHandler {
 
     private boolean isEnabled = true;
-    private int realX, realY;
 
     public ToggleableSlot(IItemHandler itemHandler, int index, int xPosition, int yPosition) {
         super(itemHandler, index, xPosition, yPosition);
-
-        realX = xPosition;
-        realY = yPosition;
     }
 
     public void toggle(boolean enabled) {
@@ -26,8 +20,6 @@ public class ToggleableSlot extends SlotItemHandler {
     public void setPosition(int x, int y) {
         this.x = x;
         this.y = y;
-        realX = x;
-        realY = y;
     }
 
     @Override
@@ -41,7 +33,7 @@ public class ToggleableSlot extends SlotItemHandler {
     }
 
     @Override
-    public boolean mayPlace(@Nullable ItemStack stack) {
-        return isEnabled && super.mayPlace(stack == null ? ItemStack.EMPTY : stack);
+    public boolean mayPlace(ItemStack stack) {
+        return isEnabled && super.mayPlace(stack);
     }
 }
