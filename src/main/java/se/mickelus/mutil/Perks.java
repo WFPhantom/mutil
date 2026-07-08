@@ -34,7 +34,7 @@ public class Perks {
                     .thenAccept(Perks::setData)
                     .get();
         } catch (URISyntaxException | ExecutionException | InterruptedException e) {
-            logger.warn("Failed to get perk data: " + e.getMessage());
+            logger.warn("Failed to get perk data: {}", e.getMessage());
             data = new Data();
         }
     }

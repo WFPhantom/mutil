@@ -1,12 +1,9 @@
 package se.mickelus.mutil.gui;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.MultiBufferSource;
-import com.mojang.blaze3d.vertex.Tesselator;
 import se.mickelus.mutil.gui.animation.KeyframeAnimation;
 
 public class GuiString extends GuiElement {

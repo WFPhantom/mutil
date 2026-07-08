@@ -1,6 +1,5 @@
 package se.mickelus.mutil.gui;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.platform.Window;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
