@@ -1,15 +1,11 @@
 package se.mickelus.mutil.gui;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import se.mickelus.mutil.gui.animation.KeyframeAnimation;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 // todo 1.20: GuiComponent became GuiGraphics extension no longer makes sense, still works?
 public class GuiElement {
@@ -72,39 +68,19 @@ public class GuiElement {
     }
 
     protected static int getXOffset(GuiElement element, GuiAttachment attachment) {
-        switch (attachment) {
-            case topLeft:
-            case middleLeft:
-            case bottomLeft:
-                return 0;
-            case topCenter:
-            case middleCenter:
-            case bottomCenter:
-                return element.getWidth() / 2;
-            case topRight:
-            case middleRight:
-            case bottomRight:
-                return element.getWidth();
-        }
-        return 0;
+        return switch (attachment) {
+            case topLeft, middleLeft, bottomLeft -> 0;
+            case topCenter, middleCenter, bottomCenter -> element.getWidth() / 2;
+            case topRight, middleRight, bottomRight -> element.getWidth();
+        };
     }
 
     protected static int getYOffset(GuiElement element, GuiAttachment attachment) {
-        switch (attachment) {
-            case topLeft:
-            case topCenter:
-            case topRight:
-                return 0;
-            case middleLeft:
-            case middleCenter:
-            case middleRight:
-                return element.getHeight() / 2;
-            case bottomCenter:
-            case bottomLeft:
-            case bottomRight:
-                return element.getHeight();
-        }
-        return 0;
+        return switch (attachment) {
+            case topLeft, topCenter, topRight -> 0;
+            case middleLeft, middleCenter, middleRight -> element.getHeight() / 2;
+            case bottomCenter, bottomLeft, bottomRight -> element.getHeight();
+        };
     }
 
     public boolean onMouseClick(int x, int y, int button) {

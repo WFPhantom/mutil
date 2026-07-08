@@ -111,7 +111,7 @@ public class DataStore<V> extends SimplePreparableReloadListener<Map<ResourceLoc
                 .map(IModInfo::getDisplayName)
                 .forEach(result::add);
 
-        if (result.size() == 0) {
+        if (result.isEmpty()) {
             result.add(fileId);
         }
 
@@ -151,7 +151,7 @@ public class DataStore<V> extends SimplePreparableReloadListener<Map<ResourceLoc
     }
 
     public void parseData(Map<ResourceLocation, JsonElement> splashList) {
-        logger.info("Loaded {} {}", String.format("%3d", splashList.values().size()), directory);
+        logger.info("Loaded {} {}", String.format("%3d", splashList.size()), directory);
         dataMap = splashList.entrySet().stream()
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
@@ -166,7 +166,7 @@ public class DataStore<V> extends SimplePreparableReloadListener<Map<ResourceLoc
     protected boolean shouldLoad(JsonElement json) {
         if (json.isJsonArray()) {
             JsonArray arr = json.getAsJsonArray();
-            if (arr.size() > 0) {
+            if (!arr.isEmpty()) {
                 json = arr.get(0);
             }
         }

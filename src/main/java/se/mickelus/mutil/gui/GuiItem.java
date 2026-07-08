@@ -95,16 +95,12 @@ public class GuiItem extends GuiElement {
     }
 
     protected String getCountString() {
-        switch (countMode) {
-            case normal:
-                return null;
-            case always:
-                return String.valueOf(itemStack.getCount());
-            case never:
-                return "";
-        }
+        return switch (countMode) {
+            case normal -> null;
+            case always -> String.valueOf(itemStack.getCount());
+            case never -> "";
+        };
 
-        return null;
     }
 
     @Override

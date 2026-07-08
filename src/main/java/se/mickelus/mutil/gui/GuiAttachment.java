@@ -12,21 +12,14 @@ public enum GuiAttachment {
     bottomRight;
 
     public GuiAttachment flipHorizontal() {
-        switch(this) {
-            case topLeft:
-                return topRight;
-            case topRight:
-                return topLeft;
-            case middleLeft:
-                return middleRight;
-            case middleRight:
-                return middleLeft;
-            case bottomLeft:
-                return bottomRight;
-            case bottomRight:
-                return bottomLeft;
-            default:
-                return this;
-        }
+        return switch (this) {
+            case topLeft -> topRight;
+            case topRight -> topLeft;
+            case middleLeft -> middleRight;
+            case middleRight -> middleLeft;
+            case bottomLeft -> bottomRight;
+            case bottomRight -> bottomLeft;
+            default -> this;
+        };
     }
 }
