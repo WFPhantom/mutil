@@ -17,7 +17,7 @@ public class Perks {
     private static volatile Data data;
 
     public static void init(String uuid) {
-        if (!ConfigHandler.client.queryPerks.get()) {
+        if (!ConfigHandler.QUERY_PERKS.get()) {
             logger.info("Perks query disabled, skipping fetch!");
             data = new Data();
             return;

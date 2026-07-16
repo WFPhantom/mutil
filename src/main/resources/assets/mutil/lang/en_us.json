@@ -1,0 +1,5 @@
+{
+  "mutil.configuration.query_perks": "Query perks",
+  "mutil.configuration.query_perks.tooltip": "Controls if perks data should be queried on startup",
+  "mutil.configuration.section.mutil.client.toml.title": "Mutil configuration"
+}

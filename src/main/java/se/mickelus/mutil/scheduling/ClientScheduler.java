@@ -11,5 +11,4 @@ public class ClientScheduler extends AbstractScheduler {
     public void onClientTick(ClientTickEvent.Post event) {
         this.tick();
     }
-
 }
